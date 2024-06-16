@@ -31,13 +31,14 @@ fn create_bindings(include_path: &Path, home_dir: &Path) {
         .allowlist_function("Hacl_HKDF_.*")
         .allowlist_function("Hacl_HMAC_.*")
         .allowlist_function("Hacl_HMAC_DRBG_.*")
-        .allowlist_function("Hacl_Bignum64_.*")
+        .allowlist_function("Hacl_Bignum.*")
         .allowlist_function("Hacl_Ed25519_.*")
         .allowlist_var("EverCrypt_Error_.*")
         .allowlist_var("Spec_.*")
         .allowlist_type("Spec_.*")
         .allowlist_type("Hacl_HMAC_DRBG_.*")
         .allowlist_type("Hacl_Hash_.*")
+        .allowlist_type("Hacl_Bignum.*")
         // Block everything we don't need or define ourselves.
         .blocklist_type("EverCrypt_AEAD_state_s.*")
         // These functions currently use FFI-unsafe u128

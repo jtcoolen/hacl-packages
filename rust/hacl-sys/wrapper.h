@@ -6,6 +6,7 @@
 #include "hacl/EverCrypt_HMAC.h"
 #include "hacl/EverCrypt_Hash.h"
 #include "hacl/Hacl_Bignum64.h"
+#include "hacl/Hacl_Bignum4096.h"
 #include "hacl/Hacl_HKDF.h"
 #include "hacl/Hacl_HMAC.h"
 #include "hacl/Hacl_HMAC_DRBG.h"

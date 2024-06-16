@@ -884,10 +884,8 @@ extern "C" {
         output: *mut u8,
     );
 }
-pub type __m128i = [::std::os::raw::c_longlong; 2usize];
-pub type Lib_IntVector_Intrinsics_vec128 = __m128i;
-pub type __m256i = [::std::os::raw::c_longlong; 4usize];
-pub type Lib_IntVector_Intrinsics_vec256 = __m256i;
+pub type uint32x4_t = [u32; 4usize];
+pub type Lib_IntVector_Intrinsics_vec128 = uint32x4_t;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Hacl_Hash_Blake2s_Simd128_block_state_t_s {
@@ -944,8 +942,8 @@ extern "C" {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Hacl_Hash_Blake2b_Simd256_block_state_t_s {
-    pub fst: *mut Lib_IntVector_Intrinsics_vec256,
-    pub snd: *mut Lib_IntVector_Intrinsics_vec256,
+    pub fst: *mut *mut ::std::os::raw::c_void,
+    pub snd: *mut *mut ::std::os::raw::c_void,
 }
 pub type Hacl_Hash_Blake2b_Simd256_block_state_t = Hacl_Hash_Blake2b_Simd256_block_state_t_s;
 #[repr(C)]
@@ -1057,6 +1055,15 @@ extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct Hacl_Bignum_MontArithmetic_bn_mont_ctx_u32_s {
+    pub len: u32,
+    pub n: *mut u32,
+    pub mu: u32,
+    pub r2: *mut u32,
+}
+pub type Hacl_Bignum_MontArithmetic_bn_mont_ctx_u32 = Hacl_Bignum_MontArithmetic_bn_mont_ctx_u32_s;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64_s {
     pub len: u32,
     pub n: *mut u64,
@@ -1064,6 +1071,7 @@ pub struct Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64_s {
     pub r2: *mut u64,
 }
 pub type Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64 = Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64_s;
+pub type Hacl_Bignum64_pbn_mont_ctx_u64 = *mut Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64;
 extern "C" {
     #[doc = "Write `a + b mod 2 ^ (64 * len)` in `res`.\n\nThis functions returns the carry.\n\nThe arguments a, b and the outparam res are meant to be `len` limbs in size, i.e. uint64_t[len]"]
     pub fn Hacl_Bignum64_add(len: u32, a: *mut u64, b: *mut u64, res: *mut u64) -> u64;
@@ -1193,6 +1201,128 @@ extern "C" {
 extern "C" {
     #[doc = "Returns 2^64 - 1 if a = b, otherwise returns 0.\n\nThe arguments a and b are meant to be `len` limbs in size, i.e. uint64_t[len]."]
     pub fn Hacl_Bignum64_eq_mask(len: u32, a: *mut u64, b: *mut u64) -> u64;
+}
+extern "C" {
+    #[doc = "Write `a + b mod 2^4096` in `res`.\n\nThis functions returns the carry.\n\nThe arguments a, b and res are meant to be 4096-bit bignums, i.e. uint64_t[64]"]
+    pub fn Hacl_Bignum4096_add(a: *mut u64, b: *mut u64, res: *mut u64) -> u64;
+}
+extern "C" {
+    #[doc = "Write `a - b mod 2^4096` in `res`.\n\nThis functions returns the carry.\n\nThe arguments a, b and res are meant to be 4096-bit bignums, i.e. uint64_t[64]"]
+    pub fn Hacl_Bignum4096_sub(a: *mut u64, b: *mut u64, res: *mut u64) -> u64;
+}
+extern "C" {
+    #[doc = "Write `(a + b) mod n` in `res`.\n\nThe arguments a, b, n and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\n\nBefore calling this function, the caller will need to ensure that the following\npreconditions are observed.\n• a < n\n• b < n"]
+    pub fn Hacl_Bignum4096_add_mod(n: *mut u64, a: *mut u64, b: *mut u64, res: *mut u64);
+}
+extern "C" {
+    #[doc = "Write `(a - b) mod n` in `res`.\n\nThe arguments a, b, n and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\n\nBefore calling this function, the caller will need to ensure that the following\npreconditions are observed.\n• a < n\n• b < n"]
+    pub fn Hacl_Bignum4096_sub_mod(n: *mut u64, a: *mut u64, b: *mut u64, res: *mut u64);
+}
+extern "C" {
+    #[doc = "Write `a * b` in `res`.\n\nThe arguments a and b are meant to be 4096-bit bignums, i.e. uint64_t[64].\nThe outparam res is meant to be a 8192-bit bignum, i.e. uint64_t[128]."]
+    pub fn Hacl_Bignum4096_mul(a: *mut u64, b: *mut u64, res: *mut u64);
+}
+extern "C" {
+    #[doc = "Write `a * a` in `res`.\n\nThe argument a is meant to be a 4096-bit bignum, i.e. uint64_t[64].\nThe outparam res is meant to be a 8192-bit bignum, i.e. uint64_t[128]."]
+    pub fn Hacl_Bignum4096_sqr(a: *mut u64, res: *mut u64);
+}
+extern "C" {
+    #[doc = "Write `a mod n` in `res`.\n\nThe argument a is meant to be a 8192-bit bignum, i.e. uint64_t[128].\nThe argument n and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\n\nThe function returns false if any of the following preconditions are violated,\ntrue otherwise.\n• 1 < n\n• n % 2 = 1"]
+    pub fn Hacl_Bignum4096_mod(n: *mut u64, a: *mut u64, res: *mut u64) -> bool;
+}
+extern "C" {
+    #[doc = "Write `a ^ b mod n` in `res`.\n\nThe arguments a, n and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\n\nThe argument b is a bignum of any size, and bBits is an upper bound on the\nnumber of significant bits of b. A tighter bound results in faster execution\ntime. When in doubt, the number of bits for the bignum size is always a safe\ndefault, e.g. if b is a 4096-bit bignum, bBits should be 4096.\n\nThe function is *NOT* constant-time on the argument b. See the\nmod_exp_consttime_* functions for constant-time variants.\n\nThe function returns false if any of the following preconditions are violated,\ntrue otherwise.\n• n % 2 = 1\n• 1 < n\n• b < pow2 bBits\n• a < n"]
+    pub fn Hacl_Bignum4096_mod_exp_vartime(
+        n: *mut u64,
+        a: *mut u64,
+        bBits: u32,
+        b: *mut u64,
+        res: *mut u64,
+    ) -> bool;
+}
+extern "C" {
+    #[doc = "Write `a ^ b mod n` in `res`.\n\nThe arguments a, n and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\n\nThe argument b is a bignum of any size, and bBits is an upper bound on the\nnumber of significant bits of b. A tighter bound results in faster execution\ntime. When in doubt, the number of bits for the bignum size is always a safe\ndefault, e.g. if b is a 4096-bit bignum, bBits should be 4096.\n\nThis function is constant-time over its argument b, at the cost of a slower\nexecution time than mod_exp_vartime.\n\nThe function returns false if any of the following preconditions are violated,\ntrue otherwise.\n• n % 2 = 1\n• 1 < n\n• b < pow2 bBits\n• a < n"]
+    pub fn Hacl_Bignum4096_mod_exp_consttime(
+        n: *mut u64,
+        a: *mut u64,
+        bBits: u32,
+        b: *mut u64,
+        res: *mut u64,
+    ) -> bool;
+}
+extern "C" {
+    #[doc = "Write `a ^ (-1) mod n` in `res`.\n\nThe arguments a, n and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\n\nBefore calling this function, the caller will need to ensure that the following\npreconditions are observed.\n• n is a prime\n\nThe function returns false if any of the following preconditions are violated, true otherwise.\n• n % 2 = 1\n• 1 < n\n• 0 < a\n• a < n"]
+    pub fn Hacl_Bignum4096_mod_inv_prime_vartime(n: *mut u64, a: *mut u64, res: *mut u64) -> bool;
+}
+extern "C" {
+    #[doc = "Heap-allocate and initialize a montgomery context.\n\nThe argument n is meant to be a 4096-bit bignum, i.e. uint64_t[64].\n\nBefore calling this function, the caller will need to ensure that the following\npreconditions are observed.\n• n % 2 = 1\n• 1 < n\n\nThe caller will need to call Hacl_Bignum4096_mont_ctx_free on the return value\nto avoid memory leaks."]
+    pub fn Hacl_Bignum4096_mont_ctx_init(
+        n: *mut u64,
+    ) -> *mut Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64;
+}
+extern "C" {
+    #[doc = "Deallocate the memory previously allocated by Hacl_Bignum4096_mont_ctx_init.\n\nThe argument k is a montgomery context obtained through Hacl_Bignum4096_mont_ctx_init."]
+    pub fn Hacl_Bignum4096_mont_ctx_free(k: *mut Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64);
+}
+extern "C" {
+    #[doc = "Write `a mod n` in `res`.\n\nThe argument a is meant to be a 8192-bit bignum, i.e. uint64_t[128].\nThe outparam res is meant to be a 4096-bit bignum, i.e. uint64_t[64].\nThe argument k is a montgomery context obtained through Hacl_Bignum4096_mont_ctx_init."]
+    pub fn Hacl_Bignum4096_mod_precomp(
+        k: *mut Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64,
+        a: *mut u64,
+        res: *mut u64,
+    );
+}
+extern "C" {
+    #[doc = "Write `a ^ b mod n` in `res`.\n\nThe arguments a and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\nThe argument k is a montgomery context obtained through Hacl_Bignum4096_mont_ctx_init.\n\nThe argument b is a bignum of any size, and bBits is an upper bound on the\nnumber of significant bits of b. A tighter bound results in faster execution\ntime. When in doubt, the number of bits for the bignum size is always a safe\ndefault, e.g. if b is a 4096-bit bignum, bBits should be 4096.\n\nThe function is *NOT* constant-time on the argument b. See the\nmod_exp_consttime_* functions for constant-time variants.\n\nBefore calling this function, the caller will need to ensure that the following\npreconditions are observed.\n• b < pow2 bBits\n• a < n"]
+    pub fn Hacl_Bignum4096_mod_exp_vartime_precomp(
+        k: *mut Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64,
+        a: *mut u64,
+        bBits: u32,
+        b: *mut u64,
+        res: *mut u64,
+    );
+}
+extern "C" {
+    #[doc = "Write `a ^ b mod n` in `res`.\n\nThe arguments a and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\nThe argument k is a montgomery context obtained through Hacl_Bignum4096_mont_ctx_init.\n\nThe argument b is a bignum of any size, and bBits is an upper bound on the\nnumber of significant bits of b. A tighter bound results in faster execution\ntime. When in doubt, the number of bits for the bignum size is always a safe\ndefault, e.g. if b is a 4096-bit bignum, bBits should be 4096.\n\nThis function is constant-time over its argument b, at the cost of a slower\nexecution time than mod_exp_vartime_*.\n\nBefore calling this function, the caller will need to ensure that the following\npreconditions are observed.\n• b < pow2 bBits\n• a < n"]
+    pub fn Hacl_Bignum4096_mod_exp_consttime_precomp(
+        k: *mut Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64,
+        a: *mut u64,
+        bBits: u32,
+        b: *mut u64,
+        res: *mut u64,
+    );
+}
+extern "C" {
+    #[doc = "Write `a ^ (-1) mod n` in `res`.\n\nThe argument a and the outparam res are meant to be 4096-bit bignums, i.e. uint64_t[64].\nThe argument k is a montgomery context obtained through Hacl_Bignum4096_mont_ctx_init.\n\nBefore calling this function, the caller will need to ensure that the following\npreconditions are observed.\n• n is a prime\n• 0 < a\n• a < n"]
+    pub fn Hacl_Bignum4096_mod_inv_prime_vartime_precomp(
+        k: *mut Hacl_Bignum_MontArithmetic_bn_mont_ctx_u64,
+        a: *mut u64,
+        res: *mut u64,
+    );
+}
+extern "C" {
+    #[doc = "Load a bid-endian bignum from memory.\n\nThe argument b points to len bytes of valid memory.\nThe function returns a heap-allocated bignum of size sufficient to hold the\nresult of loading b, or NULL if either the allocation failed, or the amount of\nrequired memory would exceed 4GB.\n\nIf the return value is non-null, clients must eventually call free(3) on it to\navoid memory leaks."]
+    pub fn Hacl_Bignum4096_new_bn_from_bytes_be(len: u32, b: *mut u8) -> *mut u64;
+}
+extern "C" {
+    #[doc = "Load a little-endian bignum from memory.\n\nThe argument b points to len bytes of valid memory.\nThe function returns a heap-allocated bignum of size sufficient to hold the\nresult of loading b, or NULL if either the allocation failed, or the amount of\nrequired memory would exceed 4GB.\n\nIf the return value is non-null, clients must eventually call free(3) on it to\navoid memory leaks."]
+    pub fn Hacl_Bignum4096_new_bn_from_bytes_le(len: u32, b: *mut u8) -> *mut u64;
+}
+extern "C" {
+    #[doc = "Serialize a bignum into big-endian memory.\n\nThe argument b points to a 4096-bit bignum.\nThe outparam res points to 512 bytes of valid memory."]
+    pub fn Hacl_Bignum4096_bn_to_bytes_be(b: *mut u64, res: *mut u8);
+}
+extern "C" {
+    #[doc = "Serialize a bignum into little-endian memory.\n\nThe argument b points to a 4096-bit bignum.\nThe outparam res points to 512 bytes of valid memory."]
+    pub fn Hacl_Bignum4096_bn_to_bytes_le(b: *mut u64, res: *mut u8);
+}
+extern "C" {
+    #[doc = "Returns 2^64 - 1 if a < b, otherwise returns 0.\n\nThe arguments a and b are meant to be 4096-bit bignums, i.e. uint64_t[64]."]
+    pub fn Hacl_Bignum4096_lt_mask(a: *mut u64, b: *mut u64) -> u64;
+}
+extern "C" {
+    #[doc = "Returns 2^64 - 1 if a = b, otherwise returns 0.\n\nThe arguments a and b are meant to be 4096-bit bignums, i.e. uint64_t[64]."]
+    pub fn Hacl_Bignum4096_eq_mask(a: *mut u64, b: *mut u64) -> u64;
 }
 extern "C" {
     #[doc = "Write the HMAC-SHA-1 MAC of a message (`data`) by using a key (`key`) into `dst`.\n\nThe key can be any length and will be hashed if it is longer and padded if it is shorter than 64 byte.\n`dst` must point to 20 bytes of memory."]
